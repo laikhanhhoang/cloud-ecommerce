@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: django_db
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=${DB_NAME:-django_db}
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+    healthcheck:
+      # Sử dụng user mặc định của postgres để check cho đơn giản và ổn định
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend # Đảm bảo đường dẫn này đúng với thực tế folder của bạn
+      dockerfile: Dockerfile
+    container_name: be_ecommerce_django
+    volumes:
+      - ./backend:/app
+      # Bỏ dòng media nếu nó nằm trong ./backend để tránh conflict mount
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-your_default_secret_key}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,localhost,127.0.0.1}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-django_db}
+      - DEBUG=${DEBUG:-1}
+    command: python manage.py runserver 0.0.0.0:8000
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    name: "ecommerce_db_volume"
