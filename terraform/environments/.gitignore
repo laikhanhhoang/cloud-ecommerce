@@ -1,0 +1,22 @@
+# --- Terraform ---
+# Loại bỏ thư mục khởi tạo (chứa provider và modules)
+**/.terraform/
+
+# Loại bỏ các file State (chứa thông tin hạ tầng thực tế, đôi khi có cả mật khẩu)
+*.tfstate
+*.tfstate.*
+
+# Loại bỏ các file khóa (Crash/Lock files)
+*.terraform.tfstate.lock.info
+
+# Loại bỏ các file biến nhạy cảm (Bạn nên dùng file này để lưu bí mật local)
+*.tfvars
+*.tfvars.json
+
+# Loại bỏ các file log
+*.terraform.log
+
+# --- LocalStack ---
+# Loại bỏ dữ liệu tạm của LocalStack để không đẩy lên Git
+environments/localstack/localstack/
+environments/localstack/localstack-scripts/

@@ -4,42 +4,69 @@ services:
     container_name: django_db
     restart: always
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - ecommerce_db_volume:/var/lib/postgresql/data/
     environment:
-      - POSTGRES_DB=${DB_NAME:-django_db}
-      - POSTGRES_USER=${DB_USER:-postgres}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${COMPOSE_DB_NAME:-django_db}
+      - POSTGRES_USER=${COMPOSE_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${COMPOSE_DB_PASSWORD:-postgres}
     healthcheck:
-      # Sử dụng user mặc định của postgres để check cho đơn giản và ổn định
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      test: ["CMD-SHELL", "pg_isready -U ${COMPOSE_DB_USER:-postgres}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   backend:
     build:
-      context: ./backend # Đảm bảo đường dẫn này đúng với thực tế folder của bạn
+      context: ./backend
       dockerfile: Dockerfile
     container_name: be_ecommerce_django
-    volumes:
-      - ./backend:/app
-      # Bỏ dòng media nếu nó nằm trong ./backend để tránh conflict mount
+    # Mở port nếu cần, dùng biến để có thể đổi hoặc ẩn đi
     ports:
-      - "8000:8000"
+      - "${COMPOSE_BACKEND_PORT:-8001}:8000" 
+    volumes:
+      - ${COMPOSE_DEV_BACKEND_MOUNT:-code_internal}:/app
+      - ${COMPOSE_DEV_STATIC_MOUNT:-static_volume}:/app/staticfiles 
+      - ${COMPOSE_DEV_MEDIA_MOUNT:-media_volume}:/app/media
     environment:
-      - SECRET_KEY=${SECRET_KEY:-your_default_secret_key}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,localhost,127.0.0.1}
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - DB_NAME=${DB_NAME:-django_db}
-      - DEBUG=${DEBUG:-1}
-    command: python manage.py runserver 0.0.0.0:8000
+      - SECRET_KEY=${COMPOSE_SECRET_KEY:-aaabbbcccddd}
+      - ALLOWED_HOSTS=${COMPOSE_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      - DB_HOST=${COMPOSE_DB_HOST:-db}
+      - DB_PORT=${COMPOSE_DB_PORT:-5432}
+      - DB_USER=${COMPOSE_DB_USER:-postgres}
+      - DB_PASSWORD=${COMPOSE_DB_PASSWORD:-postgres}
+      - DB_NAME=${COMPOSE_DB_NAME:-django_db}
+      - DEBUG=${COMPOSE_DEBUG:-1}
     depends_on:
       db:
         condition: service_healthy
 
+  nginx:
+    build: ./nginx
+    container_name: nginx_ecommerce
+    ports:
+      - "${COMPOSE_NGINX_PORT:-81}:80"
+    volumes:
+      - ${COMPOSE_DEV_STATIC_MOUNT:-static_volume}:/app/staticfiles:ro
+      - ${COMPOSE_DEV_MEDIA_MOUNT:-media_volume}:/app/media:ro
+    depends_on:
+      - backend
+
+  localstack:
+    container_name: localstack_main
+    image: localstack/localstack:3
+    ports:
+      - 4566:4566
+      - 4510-4559:4510-4559
+    environment:
+      - DEBUG=1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - ./localstack:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./localstack-scripts:/etc/localstack/init/ready.d
+
 volumes:
-  postgres_data:
-    name: "ecommerce_db_volume"
+  ecommerce_db_volume:
+  static_volume: 
+  media_volume:
+  code_internal:

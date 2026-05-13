@@ -1,1 +1,4 @@
 .env
+
+localstack/
+localstack-scripts/

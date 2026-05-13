@@ -133,11 +133,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = '/app/staticfiles' # Nơi Django sẽ gom file vào khi chạy lệnh collectstatic
+STATICFILES_DIRS = ['/app/static'] # Nơi chứa các file CSS/JS tự viết 
+
 
 
 # Media files (Uploaded by users)
 
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = '/app/media'
 MEDIA_URL = '/media/'
 
 # Default primary key field type
