@@ -1,0 +1,28 @@
+# Môi trường ảo và biến môi trường (Bạn đã có - Rất tốt)
+.venv/
+.env
+
+# Thư mục Media (Bạn đã có)
+media/
+
+# =========================================
+# BỔ SUNG THÊM CÁC DÒNG DƯỚI ĐÂY:
+# =========================================
+
+# 1. Các file cache của Python (Bắt buộc nên có)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 2. Database local (Nếu bạn dùng SQLite mặc định của Django)
+# Không nên đẩy database local lên GitHub
+db.sqlite3
+
+# 3. Cấu hình của các trình soạn thảo (IDE/Editor)
+# Tránh đẩy cấu hình cá nhân của VS Code hoặc PyCharm lên dự án chung
+.vscode/
+.idea/
+
+# 4. Các file rác của Hệ điều hành
+.DS_Store
+Thumbs.db
