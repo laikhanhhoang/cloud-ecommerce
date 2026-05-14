@@ -1,16 +1,27 @@
+
+
+# GIÁ TRỊ MẶC ĐỊNH của biến nếu không được định nghĩa trong .env sẽ được đặt sau dấu ":" của biến đó và theo cấu trúc:
+#      ${TÊN_BIẾN_MÔI_TRƯỜNG:<tên_service>_<tên_biến_môi_trường>} 
+
+# Các biến môi trường cho DOCKER-COMPOSE.yml như Volume, Port,... thì phải có cấu trúc sau:
+#       DOCKERCOMPOSE_<THÀNH PHẦN DOCKERCOMPOSE>_<TÊN_SERVICES>_<TÊN_THÀNH_PHẦN (NẾU CÓ)> 
+
+# Các biến môi trường cho DOCKER CỦA TỪNG SERVICES thì phải có cấu trúc sau: 
+#                   DOCKER_<TÊN_SERVICES>_<TÊN_BIẾN_MÔI_TRƯỜNG>
+
 services:
   db:
     image: postgres:16-alpine
     container_name: django_db
     restart: always
     volumes:
-      - ecommerce_db_volume:/var/lib/postgresql/data/
+      - ${DOCKERCOMPOSE_VOLUME_DB:-ecommerce_db_volume}:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=${COMPOSE_DB_NAME:-django_db}
-      - POSTGRES_USER=${COMPOSE_DB_USER:-postgres}
-      - POSTGRES_PASSWORD=${COMPOSE_DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${DOCKER_DB_NAME:-django_db}
+      - POSTGRES_USER=${DOCKER_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DOCKER_DB_PASSWORD:-postgres}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${COMPOSE_DB_USER:-postgres}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DOCKER_DB_USER:-postgres}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -20,22 +31,28 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: be_ecommerce_django
-    # Mở port nếu cần, dùng biến để có thể đổi hoặc ẩn đi
     ports:
-      - "${COMPOSE_BACKEND_PORT:-8001}:8000" 
+      - ${DOCKERCOMPOSE_PORT_BACKEND:-8001}:8000
     volumes:
-      - ${COMPOSE_DEV_BACKEND_MOUNT:-code_internal}:/app
-      - ${COMPOSE_DEV_STATIC_MOUNT:-static_volume}:/app/staticfiles 
-      - ${COMPOSE_DEV_MEDIA_MOUNT:-media_volume}:/app/media
+      - ${DOCKERCOMPOSE_VOLUME_BACKEND_CODE:-backend_code_internal}:/app
+      - ${DOCKERCOMPOSE_VOLUME_BACKEND_STATIC:-backend_static_volume}:/app/staticfiles 
+      - ${DOCKERCOMPOSE_VOLUME_BACKEND_MEDIA:-backend_media_volume}:/app/media
     environment:
-      - SECRET_KEY=${COMPOSE_SECRET_KEY:-aaabbbcccddd}
-      - ALLOWED_HOSTS=${COMPOSE_ALLOWED_HOSTS:-localhost,127.0.0.1}
-      - DB_HOST=${COMPOSE_DB_HOST:-db}
-      - DB_PORT=${COMPOSE_DB_PORT:-5432}
-      - DB_USER=${COMPOSE_DB_USER:-postgres}
-      - DB_PASSWORD=${COMPOSE_DB_PASSWORD:-postgres}
-      - DB_NAME=${COMPOSE_DB_NAME:-django_db}
-      - DEBUG=${COMPOSE_DEBUG:-1}
+      SECRET_KEY              : ${DOCKER_BACKEND_SECRET_KEY:-aaabbbcccddd}
+      ALLOWED_HOSTS           : ${DOCKER_BACKEND_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      DB_HOST                 : ${DOCKER_BACKEND_DB_HOST:-db}
+      DB_PORT                 : ${DOCKER_BACKEND_DB_PORT:-5432}
+      DB_USER                 : ${DOCKER_BACKEND_DB_USER:-postgres}
+      DB_PASSWORD             : ${DOCKER_BACKEND_DB_PASSWORD:-postgres}
+      DB_NAME                 : ${DOCKER_BACKEND_DB_NAME:-django_db}
+      DEBUG                   : ${DOCKER_BACKEND_DEBUG:-1}
+      AWS_ACCESS_KEY_ID       : ${DOCKER_BACKEND_AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY   : ${DOCKER_BACKEND_AWS_SECRET_ACCESS_KEY:-}
+      AWS_STORAGE_BUCKET_NAME : ${DOCKER_BACKEND_AWS_STORAGE_BUCKET_NAME:-}
+      AWS_S3_REGION_NAME      : ${DOCKER_BACKEND_AWS_S3_REGION_NAME:-}
+      AWS_S3_ENDPOINT_URL     : ${DOCKER_BACKEND_AWS_S3_ENDPOINT_URL:-}
+      AWS_S3_CUSTOM_DOMAIN    : ${DOCKER_BACKEND_AWS_S3_CUSTOM_DOMAIN:-}
+      AWS_S3_URL_PROTOCOL     : ${DOCKER_BACKEND_AWS_S3_URL_PROTOCOL:-http}
     depends_on:
       db:
         condition: service_healthy
@@ -44,15 +61,15 @@ services:
     build: ./nginx
     container_name: nginx_ecommerce
     ports:
-      - "${COMPOSE_NGINX_PORT:-81}:80"
+      - ${DOCKERCOMPOSE_PORT_NGINX:-81}:80
     volumes:
-      - ${COMPOSE_DEV_STATIC_MOUNT:-static_volume}:/app/staticfiles:ro
-      - ${COMPOSE_DEV_MEDIA_MOUNT:-media_volume}:/app/media:ro
+      - ${DOCKERCOMPOSE_VOLUME_BACKEND_STATIC:-backend_static_volume}:/app/staticfiles:ro
+      - ${DOCKERCOMPOSE_VOLUME_BACKEND_MEDIA:-backend_media_volume}:/app/media:ro
     depends_on:
       - backend
 
   localstack:
-    container_name: localstack_main
+    container_name: localstack-main
     image: localstack/localstack:3
     ports:
       - 4566:4566
@@ -67,6 +84,6 @@ services:
 
 volumes:
   ecommerce_db_volume:
-  static_volume: 
-  media_volume:
-  code_internal:
+  backend_static_volume: 
+  backend_media_volume:
+  backend_code_internal:

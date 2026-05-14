@@ -1,0 +1,5 @@
+backend_s3_access_key = "LKIAQAAAAAAAOK7MBBQF"
+backend_s3_bucket_name = "dev-backend-s3"
+backend_s3_endpoint_url = "http://localhost:4566"
+backend_s3_secret_key = <sensitive>
+backend_s3_url = "http://localhost:4566/dev-backend-s3"

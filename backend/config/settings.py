@@ -14,6 +14,8 @@ from pathlib import Path
 from django_filters.conf import settings
 from dotenv import load_dotenv
 from datetime import timedelta
+from storages.backends.s3 import S3Storage
+from storages.backends.s3boto3 import S3Boto3Storage
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,7 +30,7 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG') == 'True'
+DEBUG = os.getenv('DEBUG') in ['True', 'true', '1']
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
@@ -132,16 +134,88 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = '/app/staticfiles' # Nơi Django sẽ gom file vào khi chạy lệnh collectstatic
-STATICFILES_DIRS = ['/app/static'] # Nơi chứa các file CSS/JS tự viết 
+class StaticStorage(S3Boto3Storage):
+    location = 'static'
+    default_acl = 'public-read'
+
+    def url(self, name, headers=None, expire=None, http_method=None):
+        # Dùng globals().get() để đọc an toàn các biến đã khai báo ở phía trên file settings.py
+        protocol = globals().get('AWS_S3_URL_PROTOCOL', 'http')
+        domain = globals().get('AWS_S3_CUSTOM_DOMAIN', '')
+
+        if domain:
+            return f"{protocol}://{domain}/static/{name}"
+        return super().url(name, headers, expire, http_method)
 
 
+class MediaStorage(S3Boto3Storage):
+    location = 'media'
+    default_acl = 'public-read'
 
-# Media files (Uploaded by users)
+    def url(self, name, headers=None, expire=None, http_method=None):
+        protocol = globals().get('AWS_S3_URL_PROTOCOL', 'http')
+        domain = globals().get('AWS_S3_CUSTOM_DOMAIN', '')
 
-MEDIA_ROOT = '/app/media'
-MEDIA_URL = '/media/'
+        if domain:
+            return f"{protocol}://{domain}/media/{name}"
+        return super().url(name, headers, expire, http_method)
+    
+
+AWS_ACCESS_KEY_ID       = os.getenv('AWS_ACCESS_KEY_ID') or None
+AWS_SECRET_ACCESS_KEY   = os.getenv('AWS_SECRET_ACCESS_KEY') or None
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME') or None
+AWS_S3_REGION_NAME      = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
+AWS_S3_ENDPOINT_URL     = os.getenv('AWS_S3_ENDPOINT_URL') or None
+AWS_S3_CUSTOM_DOMAIN    = os.getenv('AWS_S3_CUSTOM_DOMAIN') or None
+AWS_S3_URL_PROTOCOL     = os.getenv('AWS_S3_URL_PROTOCOL', 'http')
+
+if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
+    STORAGES = { # Cấu hình file được Backend gửi lên lưu vào folder nào trên S3 Bucket
+        "default": {
+            "BACKEND": "config.settings.MediaStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "config.settings.StaticStorage",
+        },
+    }
+
+    if DEBUG: # Cấu hình dành riêng cho LocalStack
+        AWS_S3_USE_SSL = False
+        AWS_S3_VERIFY = False
+        AWS_S3_ADDRESSING_STYLE = "path"    # Ép dùng path-style: http://localhost:4566/bucket/file
+        
+        # Link render cho Browser/Client (Dùng trực tiếp Endpoint của LocalStack)
+        STATIC_URL = f"{AWS_S3_URL_PROTOCOL}://{AWS_S3_CUSTOM_DOMAIN}/static/"
+        MEDIA_URL = f"{AWS_S3_URL_PROTOCOL}://{AWS_S3_CUSTOM_DOMAIN}/media/"
+    else: # Cấu hình dành cho Production (AWS thật)
+        AWS_S3_USE_SSL = True
+        AWS_S3_VERIFY = True
+        AWS_S3_ADDRESSING_STYLE = "virtual" # Mặc định AWS dùng Virtual-style
+        
+        if AWS_S3_CUSTOM_DOMAIN: # Nếu dùng CloudFront hoặc Domain riêng
+            STATIC_URL = f"{AWS_S3_URL_PROTOCOL}://{AWS_S3_CUSTOM_DOMAIN}/static/"
+            MEDIA_URL = f"{AWS_S3_URL_PROTOCOL}://{AWS_S3_CUSTOM_DOMAIN}/media/"
+        else: # Nếu dùng link mặc định của S3
+            STATIC_URL = f"{AWS_S3_URL_PROTOCOL}://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/static/"
+            MEDIA_URL = f"{AWS_S3_URL_PROTOCOL}://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/media/"
+else: # --- Fallback về Local Storage nếu thiếu config S3 ---
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+    
+    STATIC_URL = '/static/'
+    MEDIA_URL = '/media/'
+
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    # STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static_fe'), os.path.join(BASE_DIR, 'static_admin')]
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static_root')
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
