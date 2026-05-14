@@ -29,8 +29,4 @@ USER django-user
 EXPOSE 8000
 
 # 8. Lệnh chạy Gunicorn
-<<<<<<< HEAD
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--access-logfile", "-", "config.wsgi:application"]
-=======
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--access-logfile", "-", "core.wsgi:application"]
->>>>>>> 764cc65b41f672cef57ca0fc9b87cf33f1fb39d1

@@ -1,0 +1,7 @@
+[2026-05-14 17:17:57 +0000] [1] [INFO] Starting gunicorn 26.0.0
+[2026-05-14 17:17:57 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+[2026-05-14 17:17:57 +0000] [1] [INFO] Using worker: sync
+[2026-05-14 17:17:57 +0000] [7] [INFO] Booting worker with pid: 7
+[2026-05-14 17:17:57 +0000] [8] [INFO] Booting worker with pid: 8
+[2026-05-14 17:17:57 +0000] [9] [INFO] Booting worker with pid: 9
+[2026-05-14 17:17:57 +0000] [1] [ERROR] Control server error: [Errno 13] Permission denied: '/nonexistent'

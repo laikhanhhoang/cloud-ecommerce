@@ -5,6 +5,7 @@ from django.db.models.signals import post_save, post_delete
 from django.core.validators import MinValueValidator
 from django.dispatch import receiver
 from django.utils.text import slugify
+from django.conf import settings
 
 def rename_image(instance, filename):
     ext = filename.split('.')[-1]                           # Lấy phần mở rộng của file cũ (ví dụ: .jpg, .png)
@@ -77,10 +78,8 @@ class Product(models.Model):
     @property
     def main_image_url(self):
         img = self.images.filter(is_main=True).first()
-<<<<<<< HEAD
-        print(f"DEBUG: Main image for product '{self.name}' is: {img.image.url if img else 'None'}")  # Debug log
-=======
->>>>>>> 764cc65b41f672cef57ca0fc9b87cf33f1fb39d1
+        if settings.DEBUG:
+            print(f"DEBUG: Main image for product '{self.name}' is: {img.image.url if img else 'None'}")  # Debug log
         return img.image.url if img else None
 
 class ProductImage(models.Model):
