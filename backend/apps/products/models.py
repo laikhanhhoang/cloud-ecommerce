@@ -77,7 +77,10 @@ class Product(models.Model):
     @property
     def main_image_url(self):
         img = self.images.filter(is_main=True).first()
+<<<<<<< HEAD
         print(f"DEBUG: Main image for product '{self.name}' is: {img.image.url if img else 'None'}")  # Debug log
+=======
+>>>>>>> 764cc65b41f672cef57ca0fc9b87cf33f1fb39d1
         return img.image.url if img else None
 
 class ProductImage(models.Model):

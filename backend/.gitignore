@@ -2,3 +2,15 @@
 .env
 media/
 staticfiles/
+media/
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+db.sqlite3
+
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

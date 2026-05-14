@@ -18,7 +18,11 @@ class UserAuth(AbstractUser):
     # Định nghĩa trường dùng để đăng nhập
     USERNAME_FIELD = 'email'     
     # Định nghĩa các trường bắt buộc khi chạy lệnh createsuperuser (ngoại trừ password và email)   
+<<<<<<< HEAD
     REQUIRED_FIELDS = [] # AbstractUser mặc định đã có username, nên chúng ta vẫn phải giữ nó trong REQUIRED_FIELDS
+=======
+    REQUIRED_FIELDS = ['username'] # AbstractUser mặc định đã có username, nên chúng ta vẫn phải giữ nó trong REQUIRED_FIELDS
+>>>>>>> 764cc65b41f672cef57ca0fc9b87cf33f1fb39d1
 
     class Meta:
         db_table = 'user_auth' 

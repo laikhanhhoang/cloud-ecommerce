@@ -29,6 +29,8 @@ urlpatterns = [
     # gồm các endpoint: /auth/register/, auth/login/
     path('api/', include('apps.products.urls')),
     # gồm các endpoint: /products/, /products/<id>/
+    path('api/', include('apps.orders.urls')),
+    # gồm các endpoint: /cart/, /cart/count/, /cart/items/
 ]
 
 if settings.DEBUG:
