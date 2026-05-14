@@ -57,17 +57,6 @@ services:
       db:
         condition: service_healthy
 
-  nginx:
-    build: ./nginx
-    container_name: nginx_ecommerce
-    ports:
-      - ${DOCKERCOMPOSE_PORT_NGINX:-81}:80
-    volumes:
-      - ${DOCKERCOMPOSE_VOLUME_BACKEND_STATIC:-backend_static_volume}:/app/staticfiles:ro
-      - ${DOCKERCOMPOSE_VOLUME_BACKEND_MEDIA:-backend_media_volume}:/app/media:ro
-    depends_on:
-      - backend
-
   localstack:
     container_name: localstack-main
     image: localstack/localstack:3
