@@ -1,0 +1,124 @@
+
+
+# GIÁ TRỊ MẶC ĐỊNH của biến nếu không được định nghĩa trong .env sẽ được đặt sau dấu ":" của biến đó và theo cấu trúc:
+#      ${TÊN_BIẾN_MÔI_TRƯỜNG:<tên_service>_<tên_biến_môi_trường>} 
+
+# Các biến môi trường cho DOCKER-COMPOSE.yml như Volume, Port,... thì phải có cấu trúc sau:
+#       DOCKERCOMPOSE_<THÀNH PHẦN DOCKERCOMPOSE>_<TÊN_SERVICES>_<TÊN_THÀNH_PHẦN (NẾU CÓ)> 
+
+# Các biến môi trường cho DOCKER CỦA TỪNG SERVICES thì phải có cấu trúc sau: 
+#                   DOCKER_<TÊN_SERVICES>_<TÊN_BIẾN_MÔI_TRƯỜNG>
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: django_db
+    restart: always
+    volumes:
+      - ${DOCKERCOMPOSE_VOLUME_DB:-ecommerce_db_volume}:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DOCKER_DB_NAME:-django_db}
+      - POSTGRES_USER=${DOCKER_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DOCKER_DB_PASSWORD:-postgres}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DOCKER_DB_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: be_ecommerce_django
+    ports:
+      - ${DOCKERCOMPOSE_PORT_BACKEND:-8001}:8000
+    volumes:
+      - ${DOCKERCOMPOSE_VOLUME_BACKEND_CODE:-backend_code_internal}:/app
+      - ${DOCKERCOMPOSE_VOLUME_BACKEND_STATIC:-backend_static_volume}:/app/staticfiles 
+      - ${DOCKERCOMPOSE_VOLUME_BACKEND_MEDIA:-backend_media_volume}:/app/media
+    environment:
+      SECRET_KEY              : ${DOCKER_BACKEND_SECRET_KEY:-aaabbbcccddd}
+      FRONTEND_URL            : ${DOCKER_BACKEND_FRONTEND_URL:-http://localhost:5173}
+      ALLOWED_HOSTS           : ${DOCKER_BACKEND_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      CORS_ALLOWED_ORIGINS    : ${DOCKER_BACKEND_CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+      CSRF_TRUSTED_ORIGINS    : ${DOCKER_BACKEND_CSRF_TRUSTED_ORIGINS:-}
+      ORIGIN_HTTPS_ON         : ${DOCKER_BACKEND_ORIGIN_HTTPS_ON:-False}
+      ORIGIN_CROSS_DOMAIN     : ${DOCKER_BACKEND_ORIGIN_CROSS_DOMAIN:-False}
+      DB_HOST                 : ${DOCKER_BACKEND_DB_HOST:-db}
+      DB_PORT                 : ${DOCKER_BACKEND_DB_PORT:-5432}
+      DB_USER                 : ${DOCKER_BACKEND_DB_USER:-postgres}
+      DB_PASSWORD             : ${DOCKER_BACKEND_DB_PASSWORD:-postgres}
+      DB_NAME                 : ${DOCKER_BACKEND_DB_NAME:-django_db}
+      DEBUG                   : ${DOCKER_BACKEND_DEBUG:-1}
+      AWS_ACCESS_KEY_ID       : ${DOCKER_BACKEND_AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY   : ${DOCKER_BACKEND_AWS_SECRET_ACCESS_KEY:-}
+      AWS_STORAGE_BUCKET_NAME : ${DOCKER_BACKEND_AWS_STORAGE_BUCKET_NAME:-}
+      AWS_S3_REGION_NAME      : ${DOCKER_BACKEND_AWS_S3_REGION_NAME:-}
+      AWS_S3_ENDPOINT_URL     : ${DOCKER_BACKEND_AWS_S3_ENDPOINT_URL:-}
+      AWS_S3_CUSTOM_DOMAIN    : ${DOCKER_BACKEND_AWS_S3_CUSTOM_DOMAIN:-}
+      AWS_S3_URL_PROTOCOL     : ${DOCKER_BACKEND_AWS_S3_URL_PROTOCOL:-http}
+      PAYOS_CLIENT_ID         : ${DOCKER_BACKEND_PAYOS_CLIENT_ID:-}
+      PAYOS_API_KEY           : ${DOCKER_BACKEND_PAYOS_API_KEY:-}
+      PAYOS_CHECKSUM_KEY      : ${DOCKER_BACKEND_PAYOS_CHECKSUM_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  localstack:
+    container_name: localstack-main
+    image: localstack/localstack:3
+    ports:
+      - 4566:4566
+      - 4510-4559:4510-4559
+    environment:
+      - DEBUG=1
+      - PERSISTENCE=1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - localstack_data:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+      - localstack-scripts:/etc/localstack/init/ready.d
+
+  frontend:
+    build: ./frontend
+    container_name: frontend-builder
+
+    depends_on:
+      - localstack
+    
+    ports:
+      - ${DOCKERCOMPOSE_PORT_FRONTEND:-5173}:5173
+
+    volumes:
+      - ${DOCKERCOMPOSE_VOLUME_FRONTEND_CODE:-frontend_code_internal}:/app
+      - ${DOCKERCOMPOSE_VOLUME_FRONTEND_NODE_MODULES:-frontend_node_modules}:/app/node_modules
+      - ${DOCKERCOMPOSE_VOLUME_FRONTEND_DIST:-frontend_dist_volume}:/app/dist
+
+    environment:
+      VITE_DEBUG: ${DOCKER_FRONTEND_DEBUG:-1}
+      VITE_API_BASE_URL: ${DOCKER_FRONTEND_VITE_API_BASE_URL:-http://localhost:8000}
+      AWS_STORAGE_BUCKET_NAME: ${DOCKER_FRONTEND_AWS_STORAGE_BUCKET_NAME:-}
+      AWS_ACCESS_KEY_ID: ${DOCKER_FRONTEND_AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${DOCKER_FRONTEND_AWS_SECRET_ACCESS_KEY:-}
+      AWS_DEFAULT_REGION: ${DOCKER_FRONTEND_AWS_S3_REGION_NAME:-}
+
+    command: >
+      sh -c "npm run dev"
+
+    # command: >
+    #   sh -c "npm install && 
+    #          npm run build && 
+    #          aws --endpoint-url=http://localstack:4566 s3 sync dist/ s3://$$AWS_STORAGE_BUCKET_NAME --delete &&
+    #          "
+
+volumes:
+  ecommerce_db_volume:
+  backend_static_volume: 
+  backend_media_volume:
+  backend_code_internal:
+  frontend_code_internal:
+  frontend_dist_volume:
+  frontend_node_modules:
+  localstack_data:
+  localstack-scripts:

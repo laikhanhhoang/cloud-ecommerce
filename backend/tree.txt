@@ -1,0 +1,37 @@
+
+- .venv/
+- apps/
+    - authentication/
+        - __pycache__/
+        - migrations/
+        - Các file.py cần thiết: apps.py, admin.py
+    - products/
+        - __pycache__/
+        - migrations/
+        - management/
+        - Các file.py cần thiết: apps.py, admin.py
+    - users/
+        - __pycache__/
+        - migrations/
+        - Các file.py cần thiết: apps.py, admin.py
+    - __init__.py
+- config/
+    - __pycache__/
+    - __init__.py
+    - asgi.py
+    - settings.py
+    - urls.py
+    - wsgi.py
+- utils/
+    - __pycache__/
+    - custom_exception_handler.py
+    - error_views.py
+- media/
+    - avatar/
+    - products/
+- manage.py
+- .env
+- Dockerfile
+- .dockerignore
+- .gitignore
+- requirements.txt
