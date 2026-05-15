@@ -35,7 +35,7 @@ DEBUG = os.getenv('DEBUG') in ['True', 'true', '1']
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 ORIGIN_HTTPS_ON = os.getenv('ORIGIN_HTTPS_ON', 'False') in ['True', 'true', '1']
-CROSS_DOMAIN_AUTH = os.getenv('CROSS_DOMAIN_AUTH', 'False') in ['True', 'true', '1']
+ORIGIN_CROSS_DOMAIN = os.getenv('ORIGIN_CROSS_DOMAIN', 'False') in ['True', 'true', '1']
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')  
 CORS_ALLOW_CREDENTIALS = True
   
@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'apps.users.apps.UsersConfig',
     'apps.products.apps.ProductsConfig',
     'apps.orders.apps.OrdersConfig',
+    'apps.carts.apps.CartsConfig',
 ]
 
 MIDDLEWARE = [

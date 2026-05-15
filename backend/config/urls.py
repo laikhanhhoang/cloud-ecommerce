@@ -23,14 +23,16 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path('api/', include('apps.users.urls')), 
+    path('api/profile/', include('apps.users.urls')), 
     # gồm các endpoint: /users/me/
-    path('api/', include('apps.authentication.urls')),
+    path('api/auth/', include('apps.authentication.urls')),
     # gồm các endpoint: /auth/register/, auth/login/
-    path('api/', include('apps.products.urls')),
+    path('api/products/', include('apps.products.urls')),
     # gồm các endpoint: /products/, /products/<id>/
-    path('api/', include('apps.orders.urls')),
-    # gồm các endpoint: /cart/, /cart/count/, /cart/items/
+    path('api/carts/', include('apps.carts.urls')),
+    # gồm các endpoint: /carts/, /carts/count/
+    path('api/orders/', include('apps.orders.urls')),
+    # gồm các endpoint: /orders/, /orders/count/, /orders/items/
 ]
 
 if settings.DEBUG:

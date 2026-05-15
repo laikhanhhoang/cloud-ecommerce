@@ -20,10 +20,14 @@ def set_auth_cookies(response, access_token, refresh_token=None):
     access_max_age = int(access_lifetime.total_seconds())
     refresh_max_age = int(refresh_lifetime.total_seconds())
 
-    samesite_val = 'Lax'
-    secure_val = getattr(settings, 'ORIGIN_HTTPS_ON', False)
-    if secure_val and getattr(settings, 'CROSS_DOMAIN_AUTH', False): samesite_val = 'None'
-
+    
+    secure_val = getattr(settings, 'ORIGIN_HTTPS_ON', False) # Check xem Origin có bật HTTPS không
+    cross_domain = getattr(settings, 'ORIGIN_CROSS_DOMAIN', False) # Check xem có bật Cross-Domain Auth không
+    if secure_val and cross_domain: 
+        samesite_val = 'None'
+    else:
+        samesite_val = 'Lax' # Mặc định vẫn là Lax để đảm bảo an toàn nếu không có cấu hình rõ ràng
+        
     common_settings = {
         'httponly': True,
         'secure': secure_val,
