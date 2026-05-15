@@ -179,38 +179,29 @@ Phần Cart **phải** tuân theo spec backend trong `cart_order_api.md`.
 ```
 
 #### 5.1. Lấy cart hiện tại
-- **Hàm tương ứng:** `fetchCart()` -> GET `/api/cart/`
+- **Hàm tương ứng:** `fetchCart()` -> GET `/api/carts/`
 
 **Response 200 (có cart)**
 ```json
 {
-  "id": 12,
-  "status": "in_cart",
-  "total_amount": "25000000.00",
-  "full_name": null,
-  "phone_number": null,
-  "shipping_address": null,
-  "payment_method": null,
+  "id": 1,
+  "total_amount": 50000000,
   "cart_count": 2,
   "items": [
     {
-      "id": 55,
+      "id": 10,
       "product_variant": {
         "id": 100,
         "sku": "IPHONE-ABC123",
         "price": "25000000",
         "version": "2024",
         "color": "Black",
-        "stock": 12,
-        "product": {
-          "id": 1,
-          "name": "iPhone 15",
-          "main_image": "http://localhost:8000/media/products/gallery/xxx.jpg"
-        }
+        "stock": 12
       },
       "quantity": 2,
-      "unit_price": "25000000.00",
-      "line_total": "50000000.00"
+      "unit_price": 25000000,
+      "line_total": 50000000,
+      "thumbnail": "http://localhost:8000/media/products/gallery/xxx.jpg"
     }
   ]
 }
@@ -218,70 +209,127 @@ Phần Cart **phải** tuân theo spec backend trong `cart_order_api.md`.
 
 **Response 200 (chưa có cart)**
 ```json
-{ "message": "Người dùng chưa có cart." }
+{
+  "id": null,
+  "items": [],
+  "total_amount": 0
+}
 ```
 
 **Frontend notes**
-- `total_amount`, `unit_price`, `line_total` là decimal string ⇒ cần parse trước khi format VND.
-- Không auto-create cart khi GET; frontend tự xử lý empty state.
+- `total_amount`, `unit_price`, `line_total` là decimal string hoặc số ⇒ cần parse trước khi format VND.
 
 #### 5.2. Lấy số lượng sản phẩm trong cart (badge)
-- **Hàm tương ứng:** `fetchCartCount()` -> GET `/api/cart/count/`
+- **Hàm tương ứng:** `fetchCartCount()` -> GET `/api/carts/count/`
 
 **Response 200**
 ```json
-{ "count": 3 }
+{ "cart_count": 3 }
 ```
 
-Ghi chú: nếu user chưa có cart backend trả `200` với `{ "count": 0 }`.
+Ghi chú: nếu user chưa có cart backend trả `200` với `{ "cart_count": 0 }`.
 
 #### 5.3. Thêm sản phẩm vào cart
-- **Hàm tương ứng:** `addCartItem(payload)` -> POST `/api/cart/items/`
+- **Hàm tương ứng:** `addCartItem(payload)` -> POST `/api/carts/add/`
 
 **Request**
 ```json
 { "product_variant_id": 100, "quantity": 1 }
 ```
 
-**Response 200**
+**Response 201**
 ```json
 {
-  "message": "Đã thêm sản phẩm vào giỏ hàng.",
-  "data": { /* Cart object */ }
+  "message": "Đã thêm vào giỏ hàng"
 }
 ```
 
 Ghi chú:
-- `quantity` optional, default = 1.
-- Nếu chưa có cart `in_cart` backend sẽ tạo Order mới.
+- Nếu chưa có cart backend sẽ tạo mới.
 - Nếu item đã tồn tại (cùng `product_variant_id`) backend sẽ cộng dồn quantity.
 
-#### 5.4. Cập nhật số lượng item
-- **Hàm tương ứng:** `updateCartItemQuantity(itemId, payload)` -> PATCH `/api/cart/items/{item_id}/`
+### 6. Đơn hàng (Orders)
+
+#### 6.1. Tạo đơn hàng (Checkout)
+- **Hàm tương ứng:** `createOrder(payload)` -> POST `/api/orders/create/`
 
 **Request**
 ```json
-{ "quantity": 3 }
-```
-
-**Response 200**
-```json
 {
-  "message": "Đã cập nhật số lượng.",
-  "data": { /* Cart object */ }
+  "full_name": "Nguyen Van A",
+  "phone_number": "0900000000",
+  "shipping_address": "HCMC",
+  "payment_method": "cod",
+  "order_note": "Giao giờ hành chính",
+  "items": [
+    {
+      "variant_id": 100,
+      "quantity": 2
+    }
+  ]
 }
 ```
 
-Ghi chú:
-- Không cho phép `quantity = 0` (muốn xóa dùng DELETE).
+**Response 201**
+```json
+{
+  "full_name": "Nguyen Van A",
+  "phone_number": "0900000000",
+  "shipping_address": "HCMC",
+  "payment_method": "cod",
+  "order_note": "Giao giờ hành chính",
+  "checkout_url": null
+}
+```
 
-#### 5.5. Xóa item khỏi cart
-- **Hàm tương ứng:** `removeCartItem(itemId)` -> DELETE `/api/cart/items/{item_id}/`
+#### 6.2. Lịch sử đơn hàng
+- **Hàm tương ứng:** `fetchOrderHistory()` -> GET `/api/orders/history/`
 
 **Response 200**
 ```json
 {
-  "message": "Đã xóa sản phẩm khỏi giỏ hàng.",
-  "data": { /* Cart object */ }
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "status": "pending",
+      "payment_method": "cod",
+      "total_amount": "50000000.00",
+      "created_at": "2026-05-15T12:00:00Z"
+    }
+  ]
+}
+```
+
+#### 6.3. Chi tiết đơn hàng
+- **Hàm tương ứng:** `fetchOrderDetail(id)` -> GET `/api/orders/<id>/`
+
+**Response 200**
+```json
+{
+  "id": 1,
+  "status": "pending",
+  "payment_method": "cod",
+  "total_amount": "50000000.00",
+  "created_at": "2026-05-15T12:00:00Z",
+  "updated_at": "2026-05-15T12:00:00Z",
+  "full_name": "Nguyen Van A",
+  "phone_number": "0900000000",
+  "shipping_address": "HCMC",
+  "order_note": "Giao giờ hành chính",
+  "items": [
+    {
+      "id": 1,
+      "product_name": "iPhone 15",
+      "variant_version": "2024",
+      "color": "Black",
+      "product_main_image": "http://localhost:8000/media/products/gallery/xxx.jpg",
+      "quantity": 2,
+      "unit_price": "25000000.00",
+      "subtotal": "50000000.00"
+    }
+  ]
 }
 ```

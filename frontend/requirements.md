@@ -82,20 +82,24 @@ Muc nay dung de AI co the doc va cap nhat code theo Products API backend.
   - KHONG hien thi cac truong noi bo cua variant len UI (vi du: `sku`, `stock`, `variant id`).
 - Them ho tro `page` param cho cac trang list.
 
-## 7. Cart API Alignment (Backend)
+## 7. Cart & Order API Alignment (Backend)
 
-Frontend Cart cần được chuẩn hoá để có thể chuyển từ client-side (Zustand) sang server-side theo backend spec trong `cart_order_api.md`.
+Frontend Cart và Order cần được chuẩn hoá theo backend spec trong `cart_order_api.md`.
 
-### 7.1. Endpoints
-- `GET /api/cart/` (không auto-create; nếu chưa có cart trả `200` với `{ "message": "..." }`)
-- `GET /api/cart/count/` (badge navbar; nếu chưa có cart trả `{ "count": 0 }`)
-- `POST /api/cart/items/` (add item theo `product_variant_id`, cộng dồn nếu đã tồn tại)
-- `PATCH /api/cart/items/{item_id}/` (update quantity; không cho `quantity=0`)
-- `DELETE /api/cart/items/{item_id}/` (xóa item)
+### 7.1. Cart Endpoints
+- `GET /api/carts/` (lấy chi tiết giỏ hàng; trả về `{ "id": null, "items": [], "total_amount": 0 }` nếu rỗng)
+- `GET /api/carts/count/` (lấy số lượng, dùng cho badge; trả về `{ "cart_count": 0 }` nếu rỗng)
+- `POST /api/carts/add/` (thêm sản phẩm vào giỏ, gửi `{ "product_variant_id": ..., "quantity": ... }`)
+- **Lưu ý**: Hiện tại backend chưa hỗ trợ cập nhật (PATCH) và xoá (DELETE) item lẻ trong giỏ hàng.
 
-### 7.2. Auth + Error format
-- Tất cả endpoints Cart **yêu cầu đăng nhập**.
-- Lỗi DRF được bọc theo format:
+### 7.2. Order Endpoints
+- `POST /api/orders/create/` (tạo đơn hàng, gửi thông tin checkout + items. Trả về `checkout_url` nếu chọn payos)
+- `GET /api/orders/history/` (lấy lịch sử đơn hàng có phân trang)
+- `GET /api/orders/<id>/` (lấy chi tiết 1 đơn hàng)
+
+### 7.3. Auth + Error format
+- Tất cả endpoints Cart và Orders **yêu cầu đăng nhập**.
+- Lỗi DRF được bọc theo format (tuỳ thuộc custom exception handler):
 
 ```json
 {
@@ -107,17 +111,16 @@ Frontend Cart cần được chuẩn hoá để có thể chuyển từ client-s
 }
 ```
 
-### 7.3. UI/Business rules
-- Badge trên Header hiển thị **tổng quantity** (không phải số dòng): ưu tiên dùng `GET /api/cart/count/` hoặc `cart.cart_count` từ `GET /api/cart/`.
-- Cart totals ưu tiên theo backend: `total_amount = sum(unit_price * quantity)`.
-- Các field tiền (`total_amount`, `unit_price`, `line_total`) là decimal string ⇒ cần parse trước khi format VND.
-- Khi add/update vượt tồn kho: backend có thể trả `400` với `error.details.quantity`.
+### 7.4. UI/Business rules
+- Badge trên Header hiển thị **tổng quantity**: dùng API `GET /api/carts/count/`.
+- Tiền tệ: `total_amount`, `unit_price`, `line_total` có thể là decimal string hoặc số, cần parse để format VND.
+- Khi gửi request tạo đơn hàng (`/api/orders/create/`), lấy dữ liệu các item hiện có trong giỏ để gửi đi.
+- Hỗ trợ thanh toán qua "payos" (redirect sang URL) và "cod" (trả tiền mặt).
 
-### 7.4. Dữ liệu item cần hiển thị
+### 7.5. Dữ liệu item cần hiển thị
 UI Cart/Checkout cần hiển thị đúng variant đã chọn:
-- Version (`product_variant.version`)
-- Color (`product_variant.color`)
-- Ảnh hiển thị: ưu tiên `product_variant.product.main_image` (backend có thể trả absolute URL, hoặc `null`)
+- Thumbnail/Ảnh hiển thị: `item.thumbnail` đối với giỏ hàng hoặc `item.product_main_image` đối với đơn hàng.
+- Version và Color (nếu có trong dữ liệu trả về).
 
 ## 4. User Flow
 

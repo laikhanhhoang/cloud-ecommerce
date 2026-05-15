@@ -105,7 +105,8 @@ const CartItem = ({ item, onRemove, onUpdateQuantity, isRemoving, isUpdating, er
             <button
               type="button"
               onClick={handleDecrease}
-              disabled={isUpdating || quantity <= 1}
+              disabled={true}
+              title="Chức năng đang cập nhật"
               className="px-3 py-2 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Giảm số lượng"
             >
@@ -117,20 +118,26 @@ const CartItem = ({ item, onRemove, onUpdateQuantity, isRemoving, isUpdating, er
               onChange={(e) => setDraftQuantity(e.target.value)}
               onBlur={handleInputBlur}
               onKeyDown={handleInputKeyDown}
-              disabled={isUpdating}
-              className="w-14 text-center py-2 outline-none border-x border-gray-200 disabled:bg-gray-50"
+              disabled={true}
+              title="Chức năng đang cập nhật"
+              className="w-14 text-center py-2 outline-none border-x border-gray-200 disabled:bg-gray-50 disabled:text-gray-500"
               aria-label="Số lượng"
             />
             <button
               type="button"
               onClick={handleIncrease}
-              disabled={isUpdating}
+              disabled={true}
+              title="Chức năng đang cập nhật"
               className="px-3 py-2 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Tăng số lượng"
             >
               +
             </button>
           </div>
+        </div>
+
+        <div className="mt-2 text-[11px] text-orange-500 italic">
+          * Tính năng thay đổi số lượng và xoá sản phẩm đang được bảo trì.
         </div>
 
         {stockErrorText && (
@@ -145,9 +152,9 @@ const CartItem = ({ item, onRemove, onUpdateQuantity, isRemoving, isUpdating, er
 
       <button 
         onClick={() => itemId && onRemove?.(itemId)}
-        disabled={isRemoving}
+        disabled={true}
         className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-        title="Xoá khỏi giỏ hàng"
+        title="Chức năng xoá đang cập nhật"
       >
         <Trash2 size={22} />
       </button>
