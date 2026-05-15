@@ -76,50 +76,57 @@ Mục tiêu Phase 8 là cập nhật **đúng theo schema Products backend** (xe
 
 ## Phase 9: Cart Integration (Backend API)
 
-Mục tiêu Phase 9 là migrate Cart từ client-side Zustand sang backend Cart API theo `cart_order_api.md`, nhưng vẫn giữ rule: Header badge phải subscribe Zustand.
+Mục tiêu Phase 9 là migrate Cart từ client-side Zustand sang backend Cart API theo `cart_order_api.md`, nhưng vẫn giữ rule: Header badge phải subscribe Zustand. Lưu ý backend hiện tại thiếu API xoá và sửa item, nên tạm thời ẩn tính năng đó trên giao diện hoặc báo chờ cập nhật.
 
-- [x] **Task 9.1:** Tạo `api/cartApi.js` (hoặc tương đương) map đúng endpoints:
-	- GET `/api/cart/`, GET `/api/cart/count/`, POST `/api/cart/items/`, PATCH `/api/cart/items/{item_id}/`, DELETE `/api/cart/items/{item_id}/`
-	- Chuẩn hoá parse tiền: `total_amount`, `unit_price`, `line_total` là string
+- [x] **Task 9.1:** Tạo `api/cartApi.js` map đúng endpoints:
+	- GET `/api/carts/`, GET `/api/carts/count/`, POST `/api/carts/add/`
 	- Chuẩn hoá error wrapper theo backend (đọc `error.details` để hiển thị msg)
 
 - [x] **Task 9.2:** Tạo hooks React Query cho Cart:
 	- `useCart()` (GET cart)
 	- `useCartCount()` (GET count)
 	- `useAddCartItem()` (POST add)
-	- `useUpdateCartItemQuantity()` (PATCH)
-	- `useRemoveCartItem()` (DELETE)
 	- Invalidate/refetch queries hợp lý sau mutation
 
 - [x] **Task 9.3:** Cập nhật Zustand `useCartStore.js` để làm “bridge” cho UI:
-	- Lưu ít nhất `cartCount` (number) và/hoặc snapshot cart cần thiết
+	- Lưu ít nhất `cartCount` (number) lấy từ API
 	- Provide action `setCartCount(count)` (được gọi từ hooks) để Header badge cập nhật reactive
 
-- [x] **Task 9.4:** Cập nhật Header badge để hiển thị `cartCount` từ Zustand (nguồn: `GET /api/cart/count/`).
+- [x] **Task 9.4:** Cập nhật Header badge để hiển thị `cartCount` từ Zustand (nguồn: `GET /api/carts/count/`).
 	- Khi chưa login hoặc API 401: hiển thị 0 (hoặc ẩn badge) theo UX hiện có
 
 - [x] **Task 9.5:** Cập nhật Product Detail actions:
-	- Nút “Thêm vào giỏ” gọi `POST /api/cart/items/` với `product_variant_id = selectedVariant.id`
+	- Nút “Thêm vào giỏ” gọi `POST /api/carts/add/` với `product_variant_id = selectedVariant.id` và `quantity`
 	- Nếu chưa chọn được variant hợp lệ: disable hoặc show toast yêu cầu chọn
 	- Nếu 401: điều hướng sang `/login` (giữ lại route hiện tại nếu có)
 
 - [x] **Task 9.6:** Cập nhật CartPage hiển thị theo backend cart:
-	- Empty state khi `GET /api/cart/` trả `{ message }`
+	- Empty state khi `GET /api/carts/` trả về `id` null hoặc `items` rỗng
 	- Render items từ `cart.items[]` và totals từ `cart.total_amount`/`item.line_total`
 
-- [x] **Task 9.7:** Cập nhật CartItem UI hỗ trợ server item id:
-	- Nút “Xóa” dùng `DELETE /api/cart/items/{item_id}/`
-	- Input/controls quantity dùng `PATCH /api/cart/items/{item_id}/` (min=1)
-	- Hiển thị lỗi stock từ `error.details.quantity` (nếu có)
+- [x] **Task 9.7:** Ghi chú UI CartItem: do backend chưa có API cập nhật và xoá lẻ item, tạm thời vô hiệu hoá nút xoá và input thay đổi số lượng trên giao diện để tránh lỗi.
 
-- [x] **Task 9.8:** Cập nhật CheckoutPage lấy items/totals từ backend cart (source of truth).
-
-- [x] **Task 9.9:** (Tạm thời) Clear cart sau khi checkout mock success bằng cách xóa lần lượt từng item (DELETE) và refresh cart/count.
+- [x] **Task 9.8:** Cập nhật CheckoutPage lấy items/totals từ backend cart.
 
 ## Phase 10: Order/Checkout Integration (Backend API)
 
-Phase 10 chỉ thực hiện khi backend đã cung cấp endpoint “checkout/submit order” chính thức.
+Mục tiêu Phase 10 là tích hợp hệ thống Checkout thực tế với API Orders của Backend.
 
-- [ ] **Task 10.1:** Chuẩn hoá contract submit order theo backend (request/response) và cập nhật `api-contract.md`.
-- [ ] **Task 10.2:** Update `api/orderApi.js` + hooks để submit order thật và xử lý success/error.
-- [ ] **Task 10.3:** Sau checkout thành công: đảm bảo cart server-side được clear đúng cách (backend endpoint hoặc xoá items).
+- [ ] **Task 10.1:** Tạo `api/orderApi.js` map đúng các endpoints:
+	- POST `/api/orders/create/`
+	- GET `/api/orders/history/`
+	- GET `/api/orders/<id>/`
+
+- [ ] **Task 10.2:** Tạo hooks React Query:
+	- `useCreateOrder()` (POST create)
+	- `useOrderHistory(page)` (GET history)
+	- `useOrderDetail(id)` (GET detail)
+
+- [ ] **Task 10.3:** Cập nhật sự kiện "Xác nhận thanh toán" tại CheckoutPage:
+	- Lấy dữ liệu form (Họ tên, SĐT, Địa chỉ, Ghi chú, Phương thức thanh toán) kết hợp `items` từ Cart hiện tại.
+	- Gửi payload lên `POST /api/orders/create/`
+	- Xử lý phương thức thanh toán:
+		- Nếu chọn `payos`: lấy `checkout_url` trả về từ API và chuyển hướng người dùng (window.location.href).
+		- Nếu chọn `cod`: hiển thị thông báo thành công và chuyển hướng về trang chủ hoặc trang lịch sử đơn hàng.
+
+- [ ] **Task 10.4:** Bổ sung/Cập nhật trang Order History và Order Detail để hiển thị dữ liệu lịch sử đặt hàng và chi tiết các đơn hàng theo API thực tế từ backend.

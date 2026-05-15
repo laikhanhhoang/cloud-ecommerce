@@ -35,3 +35,4 @@
 - **Mocking:** Simulate realistic network delays (e.g., 500ms) in the mock API calls to ensure Loading Spinners/Skeletons render correctly.
 - **Authentication:** Token logic must adhere to backend rules (HttpOnly Cookies). Define Axios Interceptors to handle 401 Unauthorized errors and automatically call the `/api/auth/token/refresh/` endpoint, then retry the original request.
 - **User Store:** Create a `useAuthStore` in Zustand to manage local `user` information fetched from `/api/auth/me/`.
+- **Cart and Orders:** Must implement cart according to backend specifications in `cart_order_api.md`. The backend uses `/api/carts/` and `/api/orders/` endpoints. The cart uses a separate model from orders, and the checkout should redirect users if using external payment like payos.

@@ -3,7 +3,7 @@ import { fetchCart } from '../api/cartApi';
 import { cartQueryKeys } from './cartQueryKeys';
 
 /**
- * GET /api/cart/
+ * GET /api/carts/
  * Note: backend may return 200 with { message } when user has no cart.
  */
 export function useCart(options = {}) {

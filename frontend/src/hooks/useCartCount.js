@@ -7,7 +7,7 @@ import { useCartStore } from '../store/useCartStore';
 import { cartQueryKeys } from './cartQueryKeys';
 
 /**
- * GET /api/cart/count/
+ * GET /api/carts/count/
  */
 export function useCartCount(options = {}) {
   const { enabled: enabledOption, onSuccess, onError, ...restOptions } = options;
@@ -22,22 +22,30 @@ export function useCartCount(options = {}) {
 
   const enabled = Boolean(enabledOption ?? true) && isAuthInitialized && !!user;
 
-  return useQuery({
+  const query = useQuery({
     queryKey: cartQueryKeys.count(),
     queryFn: fetchCartCount,
     staleTime: 0,
     retry: false,
     enabled,
-    onSuccess: (data) => {
-      setCartCount(data?.count ?? 0);
-      onSuccess?.(data);
-    },
-    onError: (err) => {
-      if (getErrorStatusCode(err) === 401) {
-        setCartCount(0);
-      }
-      onError?.(err);
-    },
     ...restOptions,
   });
+
+  useEffect(() => {
+    if (query.isSuccess) {
+      setCartCount(query.data?.cart_count ?? 0);
+      if (onSuccess) onSuccess(query.data);
+    }
+  }, [query.isSuccess, query.data, setCartCount, onSuccess]);
+
+  useEffect(() => {
+    if (query.isError) {
+      if (getErrorStatusCode(query.error) === 401) {
+        setCartCount(0);
+      }
+      if (onError) onError(query.error);
+    }
+  }, [query.isError, query.error, setCartCount, onError]);
+
+  return query;
 }

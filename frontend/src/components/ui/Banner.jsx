@@ -6,7 +6,7 @@ export default function Banner() {
           TechStore
         </h2>
         <p className="text-lg md:text-2xl font-medium text-blue-100 max-w-lg mx-auto">
-          Đồ điện tử chất lượng cao, giá siêu tốt
+          Đồ điện tử chất lượng cao, giá siêu tốt!
         </p>
       </div>
     </div>
