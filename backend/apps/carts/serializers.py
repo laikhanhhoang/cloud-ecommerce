@@ -14,10 +14,11 @@ class CartItemSerializer(serializers.ModelSerializer):
     product_variant = ProductVariantSerializer(read_only=True)
     unit_price      = serializers.SerializerMethodField()
     line_total      = serializers.SerializerMethodField()
+    product_name    = serializers.CharField(source='product_variant.product.name', read_only=True)
 
     class Meta:
         model   = CartItem
-        fields  = ['id', 'product_variant', 'quantity', 'unit_price', 'line_total', 'thumbnail']
+        fields  = ['id', 'product_name', 'product_variant', 'quantity', 'unit_price', 'line_total', 'thumbnail']
 
     def get_unit_price(self, obj):
         return obj.product_variant.price

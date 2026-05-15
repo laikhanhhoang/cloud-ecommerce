@@ -4,6 +4,7 @@ from apps.products.models import ProductVariant
 from .models import Order, OrderItem
 from django.conf import settings
 from payos import PayOS
+# pyrefly: ignore [missing-import]
 from payos.types import CreatePaymentLinkRequest
 
 
