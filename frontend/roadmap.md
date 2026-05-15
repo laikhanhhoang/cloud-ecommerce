@@ -112,21 +112,21 @@ Mục tiêu Phase 9 là migrate Cart từ client-side Zustand sang backend Cart 
 
 Mục tiêu Phase 10 là tích hợp hệ thống Checkout thực tế với API Orders của Backend.
 
-- [ ] **Task 10.1:** Tạo `api/orderApi.js` map đúng các endpoints:
+- [x] **Task 10.1:** Tạo `api/orderApi.js` map đúng các endpoints:
 	- POST `/api/orders/create/`
 	- GET `/api/orders/history/`
 	- GET `/api/orders/<id>/`
 
-- [ ] **Task 10.2:** Tạo hooks React Query:
+- [x] **Task 10.2:** Tạo hooks React Query:
 	- `useCreateOrder()` (POST create)
 	- `useOrderHistory(page)` (GET history)
 	- `useOrderDetail(id)` (GET detail)
 
-- [ ] **Task 10.3:** Cập nhật sự kiện "Xác nhận thanh toán" tại CheckoutPage:
+- [x] **Task 10.3:** Cập nhật sự kiện "Xác nhận thanh toán" tại CheckoutPage:
 	- Lấy dữ liệu form (Họ tên, SĐT, Địa chỉ, Ghi chú, Phương thức thanh toán) kết hợp `items` từ Cart hiện tại.
 	- Gửi payload lên `POST /api/orders/create/`
 	- Xử lý phương thức thanh toán:
 		- Nếu chọn `payos`: lấy `checkout_url` trả về từ API và chuyển hướng người dùng (window.location.href).
 		- Nếu chọn `cod`: hiển thị thông báo thành công và chuyển hướng về trang chủ hoặc trang lịch sử đơn hàng.
 
-- [ ] **Task 10.4:** Bổ sung/Cập nhật trang Order History và Order Detail để hiển thị dữ liệu lịch sử đặt hàng và chi tiết các đơn hàng theo API thực tế từ backend.
+- [x] **Task 10.4:** Bổ sung/Cập nhật trang Order History và Order Detail để hiển thị dữ liệu lịch sử đặt hàng và chi tiết các đơn hàng theo API thực tế từ backend.

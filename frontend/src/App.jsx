@@ -11,6 +11,8 @@ import CheckoutPage from './pages/CheckoutPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import ProfilePage from './pages/ProfilePage'
+import OrderHistoryPage from './pages/OrderHistoryPage'
+import OrderDetailPage from './pages/OrderDetailPage'
 import { useAuthBootstrap } from './hooks/useAuthBootstrap'
 
 const router = createBrowserRouter([
@@ -24,6 +26,8 @@ const router = createBrowserRouter([
       { path: 'product/:id', element: <ProductDetailPage /> },
       { path: 'cart', element: <CartPage /> },
       { path: 'profile', element: <ProfilePage /> },
+      { path: 'orders', element: <OrderHistoryPage /> },
+      { path: 'orders/:id', element: <OrderDetailPage /> },
     ],
   },
   {

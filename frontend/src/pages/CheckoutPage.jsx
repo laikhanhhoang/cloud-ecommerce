@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCart } from '../hooks/useCart';
 import { useClearCart } from '../hooks/useClearCart';
-import { useSubmitOrder } from '../hooks/useSubmitOrder';
+import { useCreateOrder } from '../hooks/useCreateOrder';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -16,12 +16,14 @@ export default function CheckoutPage() {
   });
 
   const clearCartMutation = useClearCart();
-  const { mutate: mutateSubmitOrder, isPending } = useSubmitOrder();
+  const { mutate: mutateSubmitOrder, isPending } = useCreateOrder();
 
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
-    address: ''
+    address: '',
+    orderNote: '',
+    paymentMethod: 'cod'
   });
 
   const handleChange = (e) => {
@@ -42,30 +44,20 @@ export default function CheckoutPage() {
     }
 
     const formattedItems = cartItems.map((item) => {
-      const productId = item?.product_variant?.product?.id;
-      const unitPrice = typeof item?.unitPrice === 'number' && Number.isFinite(item.unitPrice)
-        ? item.unitPrice
-        : Number(String(item?.unit_price ?? 0).replace(/,/g, ''));
-
+      const variantId = item?.product_variant?.id;
       return {
-        productId: productId === undefined || productId === null ? '' : String(productId),
-        quantity: Number(item?.quantity ?? 0),
-        price: Number.isFinite(unitPrice) ? unitPrice : 0,
+        variant_id: variantId === undefined || variantId === null ? '' : Number(variantId),
+        quantity: Number(item?.quantity ?? 0)
       };
     });
 
-    const totalAmount = typeof cart?.totalAmount === 'number' && Number.isFinite(cart.totalAmount)
-      ? cart.totalAmount
-      : 0;
-
     const orderData = {
-      customer: {
-        fullName: formData.fullName,
-        phone: formData.phone,
-        address: formData.address
-      },
-      items: formattedItems,
-      totalAmount
+      full_name: formData.fullName,
+      phone_number: formData.phone,
+      shipping_address: formData.address,
+      payment_method: formData.paymentMethod,
+      order_note: formData.orderNote,
+      items: formattedItems
     };
 
     mutateSubmitOrder(orderData, {
@@ -77,8 +69,12 @@ export default function CheckoutPage() {
           // Ignore clear-cart errors for now; user still completed checkout mock.
         }
 
-        alert(data.message || 'Thanh toán thành công');
-        navigate('/');
+        if (formData.paymentMethod === 'payos' && data.checkout_url) {
+          window.location.href = data.checkout_url;
+        } else {
+          alert(data.message || 'Thanh toán thành công');
+          navigate('/orders');
+        }
       },
       onError: () => {
         alert('Có lỗi xảy ra trong quá trình xử lý đơn hàng.');
@@ -212,19 +208,53 @@ export default function CheckoutPage() {
                   placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố"
                 ></textarea>
               </div>
+
+              <div>
+                <label htmlFor="orderNote" className="block text-sm font-medium text-gray-700 mb-1">
+                  Ghi chú (Tuỳ chọn)
+                </label>
+                <textarea 
+                  id="orderNote"
+                  name="orderNote"
+                  value={formData.orderNote}
+                  onChange={handleChange}
+                  rows={2}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white outline-none transition resize-none"
+                  placeholder="Lưu ý khi giao hàng..."
+                ></textarea>
+              </div>
             </div>
           </div>
 
-          {/* QR Code Section (Task 5.2) */}
-          <div id="qr-code-placeholder" className="pt-6 flex flex-col items-center justify-center">
-            <img 
-              src="https://placehold.co/200x200/png?text=QR+Code" 
-              alt="QR Code Thanh Toán" 
-              className="w-48 h-48 border border-gray-200 shadow-sm rounded-lg mb-3"
-            />
-            <p className="text-sm font-medium text-gray-600">
-              Quét mã QR bằng ứng dụng ngân hàng để thanh toán đơn hàng
-            </p>
+          <div>
+            <h2 className="text-xl font-semibold mb-6 flex items-center text-gray-800 border-b pb-2">
+              Phương thức thanh toán
+            </h2>
+            <div className="space-y-4">
+              <label className="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
+                <input 
+                  type="radio" 
+                  name="paymentMethod" 
+                  value="cod"
+                  checked={formData.paymentMethod === 'cod'}
+                  onChange={handleChange}
+                  className="w-5 h-5 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="font-medium text-gray-800">Thanh toán khi nhận hàng (COD)</span>
+              </label>
+              
+              <label className="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
+                <input 
+                  type="radio" 
+                  name="paymentMethod" 
+                  value="payos"
+                  checked={formData.paymentMethod === 'payos'}
+                  onChange={handleChange}
+                  className="w-5 h-5 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="font-medium text-gray-800">Thanh toán chuyển khoản (PayOS)</span>
+              </label>
+            </div>
           </div>
 
           <div className="pt-4 mt-8 border-t border-gray-100">
