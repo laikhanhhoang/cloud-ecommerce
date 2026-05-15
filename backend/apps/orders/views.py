@@ -1,9 +1,15 @@
+import os
+from django.conf import settings
 from rest_framework import generics, permissions
-
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from apps.orders.models import Order
 from .serializers import OrderCreateSerializer, OrderDetailSerializer, OrderHistorySerializer
 from rest_framework.pagination import PageNumberPagination
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
+from payos import PayOS
 
 class OrderPagination(PageNumberPagination):
     page_size = 10
@@ -57,3 +63,20 @@ class OrderDetailView(generics.RetrieveAPIView):
             .filter(user=self.request.user)
             .prefetch_related("items")
         )
+    
+
+@csrf_exempt
+def webhook_handler(request):
+    payOS = PayOS(
+        client_id=settings.PAYOS_CLIENT_ID,
+        api_key=settings.PAYOS_API_KEY,
+        checksum_key=settings.PAYOS_CHECKSUM_KEY
+    )    
+
+    try:
+        webhook_data = payOS.webhooks.verify(request.body)
+        print(f"Thanh toán thành công: {webhook_data}")
+        return JsonResponse({"message": "OK"}, status=200)
+    except Exception as e:
+        print(f"Webhook không hợp lệ nha Dev!: {e}")
+        return JsonResponse({"message": "Invalid webhook"}, status=400)

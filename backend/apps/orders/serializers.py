@@ -2,6 +2,10 @@ from rest_framework import serializers
 from django.db import transaction
 from apps.products.models import ProductVariant
 from .models import Order, OrderItem
+from django.conf import settings
+from payos import PayOS
+from payos.types import CreatePaymentLinkRequest
+
 
 class OrderItemInputSerializer(serializers.Serializer):
     variant_id = serializers.IntegerField()
@@ -20,6 +24,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             "payment_method",
             "order_note",
             "items",
+            "checkout_url",
         ]
 
     def create(self, validated_data):
@@ -82,6 +87,37 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
             order.total_amount = total
             order.save(update_fields=["total_amount"])
+
+            if order.payment_method == "payos":
+                try:
+                # Generate checkout URL for PayOS payment
+                    payOS = PayOS(
+                        client_id=settings.PAYOS_CLIENT_ID,
+                        api_key=settings.PAYOS_API_KEY,
+                        checksum_key=settings.PAYOS_CHECKSUM_KEY
+                    )
+                    payment_request = CreatePaymentLinkRequest(
+                        order_code=int(order.id),
+                        amount=int(order.total_amount),
+                        description=f"Thanh toan don hang {order.id}",
+                        cancel_url="https://example.com/cancel",
+                        return_url="https://example.com/success"
+                    )
+
+                    payment_link = payOS.payment_requests.create(payment_request)
+                    print("Payment link created:", payment_link.checkout_url)
+
+                    order.checkout_url = payment_link.checkout_url
+                    order.save(update_fields=["checkout_url"])
+                    
+                except Exception as e:
+                    print("!!!" * 20)
+                    import traceback
+                    traceback.print_exc() # In đầy đủ nguyên nhân lỗi
+                    print("!!!" * 20)
+                    
+                    # Trả lỗi về Postman để biết đường mà sửa
+                    raise serializers.ValidationError({"debug_payos": str(e)})
 
         return order
     

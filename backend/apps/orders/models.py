@@ -33,6 +33,13 @@ class Order(models.Model):
     created_at          = models.DateTimeField(auto_now_add=True, verbose_name="Ngày đặt hàng")
     updated_at          = models.DateTimeField(auto_now=True)
 
+    checkout_url = models.URLField(
+        max_length=500, 
+        null=True, 
+        blank=True, 
+        verbose_name="Link thanh toán"
+    )
+
     class Meta:
         db_table = "orders"
         ordering = ['-created_at']

@@ -43,7 +43,7 @@ class OrderAdmin(admin.ModelAdmin):
             'fields': ('status', 'payment_method', 'total_amount', 'order_note')
         }),
         ("Thông tin giao hàng (Snapshot)", {
-            'fields': ('full_name', 'phone_number', 'shipping_address'),
+            'fields': ('full_name', 'phone_number', 'shipping_address', 'checkout_url'),
         }),
         ("Dữ liệu hệ thống", {
             'fields': ('user', 'created_at', 'updated_at'),
@@ -51,7 +51,7 @@ class OrderAdmin(admin.ModelAdmin):
         }),
     )
     
-    readonly_fields = ('total_amount', 'user', 'created_at', 'updated_at')
+    readonly_fields = ('total_amount', 'user', 'created_at', 'updated_at', 'checkout_url')
     inlines = [OrderItemInline]
 
     def user_link(self, obj):

@@ -45,9 +45,15 @@ LOGGING = {
 
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') + ["actress-captivity-spray.ngrok-free.dev"]
+ALLOWED_HOSTS = ["*"]
 
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
+# CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
+CSRF_TRUSTED_ORIGINS = [
+    "https://actress-captivity-spray.ngrok-free.dev"
+]
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 ORIGIN_HTTPS_ON = os.getenv('ORIGIN_HTTPS_ON', 'False') in ['True', 'true', '1']
 ORIGIN_CROSS_DOMAIN = os.getenv('ORIGIN_CROSS_DOMAIN', 'False') in ['True', 'true', '1']
@@ -285,3 +291,5 @@ SIMPLE_JWT = {
 PAYOS_CLIENT_ID     = os.getenv('PAYOS_CLIENT_ID')
 PAYOS_API_KEY       = os.getenv('PAYOS_API_KEY')
 PAYOS_CHECKSUM_KEY  = os.getenv('PAYOS_CHECKSUM_KEY')
+
+PAYOS_WEBHOOK_URL = "https://actress-captivity-spray.ngrok-free.dev/api/orders/webhook/payos/"
