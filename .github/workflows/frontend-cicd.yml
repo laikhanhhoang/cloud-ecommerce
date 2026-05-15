@@ -2,44 +2,64 @@ name: Frontend CI/CD Production
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
     paths:
-      - "frontend/**"
+      - 'frontend/**'
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      # 1. Checkout source code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      # 2. Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
+      # 3. Install dependencies
       - name: Install dependencies
         working-directory: ./frontend
         run: npm ci
 
-      - name: Build
+      # 4. Build frontend
+      - name: Build frontend
         working-directory: ./frontend
         run: npm run build
 
-      - name: Debug Secrets
+      # 5. Debug secrets
+      - name: Debug AWS Secrets
+        if: github.event_name == 'push'
         run: |
-          echo "KEY=${{ secrets.FRONTEND_AWS_ACCESS_KEY_ID != '' }}"
-          echo "SECRET=${{ secrets.FRONTEND_AWS_SECRET_ACCESS_KEY != '' }}"
-          echo "REGION=${{ secrets.AWS_REGION != '' }}"
+          echo "AWS_ACCESS_KEY_ID exists: ${{ secrets.FRONTEND_AWS_ACCESS_KEY_ID != '' }}"
+          echo "AWS_SECRET_ACCESS_KEY exists: ${{ secrets.FRONTEND_AWS_SECRET_ACCESS_KEY != '' }}"
+          echo "AWS_REGION exists: ${{ secrets.AWS_REGION != '' }}"
+          echo "S3_BUCKET exists: ${{ secrets.S3_FRONTEND_BUCKET_NAME != '' }}"
 
+      # 6. Configure AWS credentials
       - name: Configure AWS Credentials
+        if: github.event_name == 'push'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.FRONTEND_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.FRONTEND_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # 7. Deploy to S3
       - name: Deploy to S3
+        if: github.event_name == 'push'
         run: |
           aws s3 sync ./frontend/dist s3://${{ secrets.S3_FRONTEND_BUCKET_NAME }} --delete
