@@ -47,7 +47,7 @@ jobs:
       - name: Deploy to S3
         if: github.event_name == 'push'
         run: |
-          aws s3 sync ./frontend/dist s3://${{ secrets.S3_BUCKET_NAME }} --delete
+          aws s3 sync ./frontend/dist s3://${{ secrets.S3_FRONTEND_BUCKET_NAME }} --delete
 
       # 6. (Tùy chọn) Xóa Cache CloudFront để cập nhật Web ngay lập tức
       # - name: Invalidate CloudFront
