@@ -40,7 +40,7 @@ const normalizeCart = (cart) => {
  * Note: backend returns 200 with { message } when user has no cart.
  */
 export async function fetchCart() {
-  const response = await httpClient.get('/api/cart/');
+  const response = await httpClient.get('/api/carts/');
   return normalizeCart(response.data);
 }
 
@@ -49,17 +49,17 @@ export async function fetchCart() {
  * @returns {{count: number}}
  */
 export async function fetchCartCount() {
-  const response = await httpClient.get('/api/cart/count/');
+  const response = await httpClient.get('/api/carts/count/');
   const count = Number(response.data?.count ?? 0);
   return { ...response.data, count: Number.isFinite(count) ? count : 0 };
 }
 
 /**
- * POST /api/cart/items/
+ * POST /api/carts/items/
  * @param {{product_variant_id: number, quantity?: number}} payload
  */
 export async function addCartItem(payload) {
-  const response = await httpClient.post('/api/cart/items/', payload);
+  const response = await httpClient.post('/api/carts/items/', payload);
   const data = response.data;
 
   if (isPlainObject(data) && isPlainObject(data.data)) {
@@ -75,7 +75,7 @@ export async function addCartItem(payload) {
  * @param {{quantity: number}} payload
  */
 export async function updateCartItemQuantity(itemId, payload) {
-  const response = await httpClient.patch(`/api/cart/items/${itemId}/`, payload);
+  const response = await httpClient.patch(`/api/carts/items/${itemId}/`, payload);
   const data = response.data;
 
   if (isPlainObject(data) && isPlainObject(data.data)) {
@@ -90,7 +90,7 @@ export async function updateCartItemQuantity(itemId, payload) {
  * @param {number|string} itemId
  */
 export async function removeCartItem(itemId) {
-  const response = await httpClient.delete(`/api/cart/items/${itemId}/`);
+  const response = await httpClient.delete(`/api/carts/items/${itemId}/`);
   const data = response.data;
 
   if (isPlainObject(data) && isPlainObject(data.data)) {

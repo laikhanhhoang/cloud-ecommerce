@@ -33,6 +33,7 @@ urlpatterns = [
     # gồm các endpoint: /carts/, /carts/count/
     path('api/orders/', include('apps.orders.urls')),
     # gồm các endpoint: /orders/, /orders/count/, /orders/items/
+    # path('api/payments/', include('apps.payments.urls')),
 ]
 
 if settings.DEBUG:

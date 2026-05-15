@@ -32,7 +32,22 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') in ['True', 'true', '1']
 
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler'},
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}
+
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
 
 ORIGIN_HTTPS_ON = os.getenv('ORIGIN_HTTPS_ON', 'False') in ['True', 'true', '1']
 ORIGIN_CROSS_DOMAIN = os.getenv('ORIGIN_CROSS_DOMAIN', 'False') in ['True', 'true', '1']
@@ -61,6 +76,7 @@ INSTALLED_APPS = [
     'apps.products.apps.ProductsConfig',
     'apps.orders.apps.OrdersConfig',
     'apps.carts.apps.CartsConfig',
+    # 'apps.payments.apps.PaymentsConfig',
 ]
 
 MIDDLEWARE = [
@@ -266,3 +282,6 @@ SIMPLE_JWT = {
     'TOKEN_OBTAIN_PAIR_SERIALIZER': 'apps.users.authenticate.CustomTokenObtainPairSerializer',   # Trỏ đến class custom serializer 
 }
 
+PAYOS_CLIENT_ID     = os.getenv('PAYOS_CLIENT_ID')
+PAYOS_API_KEY       = os.getenv('PAYOS_API_KEY')
+PAYOS_CHECKSUM_KEY  = os.getenv('PAYOS_CHECKSUM_KEY')
