@@ -2,55 +2,44 @@ name: Frontend CI/CD Production
 
 on:
   push:
-    branches: [ "main" ] # Tự động deploy khi code push/merge vào main
+    branches: ["main"]
     paths:
-      - 'frontend/**'    # Chỉ chạy khi có thay đổi trong folder frontend
-  pull_request:
-    branches: [ "main" ] # Chạy kiểm tra (Build) khi có PR vào main
-    paths:
-      - 'frontend/**'
+      - "frontend/**"
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Lấy code từ GitHub về máy ảo
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Cài đặt Node.js
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          node-version: 22
 
-      # 3. Cài đặt thư viện và Build (Bước CI - Kiểm tra lỗi)
-      - name: Install & Build Frontend
+      - name: Install dependencies
         working-directory: ./frontend
-        run: |
-          npm install
-          npm run build
+        run: npm ci
 
-      # 4. Cấu hình thông tin AWS (Dùng Secrets)
+      - name: Build
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Debug Secrets
+        run: |
+          echo "KEY=${{ secrets.FRONTEND_AWS_ACCESS_KEY_ID != '' }}"
+          echo "SECRET=${{ secrets.FRONTEND_AWS_SECRET_ACCESS_KEY != '' }}"
+          echo "REGION=${{ secrets.AWS_REGION != '' }}"
+
       - name: Configure AWS Credentials
-        if: github.event_name == 'push' # Chỉ chạy bước này khi merge vào main (Deploy)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.FRONTEND_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.FRONTEND_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 5. Đồng bộ lên S3 (Bước CD - Triển khai thực tế)
       - name: Deploy to S3
-        if: github.event_name == 'push'
         run: |
           aws s3 sync ./frontend/dist s3://${{ secrets.S3_FRONTEND_BUCKET_NAME }} --delete
-
-      # 6. (Tùy chọn) Xóa Cache CloudFront để cập nhật Web ngay lập tức
-      # - name: Invalidate CloudFront
-      #   if: github.event_name == 'push'
-      #   run: |
-      #     aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_ID }} --paths "/*"
