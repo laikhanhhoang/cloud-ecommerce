@@ -12,8 +12,8 @@ class ProductVariantInline(admin.StackedInline):
     model = ProductVariant
     extra = 1
     # Dùng StackedInline vì Variant có nhiều trường, hiện theo hàng dọc sẽ dễ nhìn hơn
-    fields = (('sku', 'version'), ('price', 'stock', 'color'), 'variant_image')
-    readonly_fields = ('sku',) # SKU tự sinh nên để readonly nếu bạn không muốn sửa tay
+    fields = (('id','sku', 'version'), ('price', 'stock', 'color'), 'variant_image')
+    readonly_fields = ('id','sku') # SKU tự sinh nên để readonly nếu bạn không muốn sửa tay
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -40,10 +40,10 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductVariant)
 class ProductVariantAdmin(admin.ModelAdmin):
-    list_display = ('sku', 'product', 'price', 'stock', 'color')
+    list_display = ('id', 'sku', 'product', 'price', 'stock', 'color')
     list_filter = ('product', 'color')
     search_fields = ('sku', 'product__name')
-    readonly_fields = ('sku',)
+    readonly_fields = ('id', 'sku')
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):

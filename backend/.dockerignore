@@ -6,3 +6,4 @@ media/
 .git
 db.sqlite3
 .env
+.env.backend.local.example

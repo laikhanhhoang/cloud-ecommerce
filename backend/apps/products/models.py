@@ -159,7 +159,8 @@ class ProductVariant(models.Model):
     )
 
     stock = models.PositiveIntegerField(
-        default=0, 
+        default=200,
+        blank=True, 
         verbose_name="Số lượng tồn kho"
     )                                                                    # Quản lý tồn kho cho từng phiên bản
 
@@ -175,7 +176,7 @@ class ProductVariant(models.Model):
         verbose_name_plural = "Các phiên bản sản phẩm"
 
     def __str__(self):
-        return f"{self.product.name} - {self.sku}"
+        return f"{self.product.name} - {self.sku} - {self.id}"
     
     def save(self, *args, **kwargs):
         if not self.sku:

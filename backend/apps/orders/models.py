@@ -6,53 +6,39 @@ from apps.products.models import ProductVariant
 
 class Order(models.Model):
     class Status(models.TextChoices):
-        PENDING = "pending", "Chờ thanh toán"
-        PROCESSING = "processing", "Đã thanh toán - Đơn hàng đang được xử lý"
-        SHIPPED = "shipped", "Đang giao hàng"
-        DELIVERED = "delivered", "Đã giao hàng"
-        CANCELLED = "cancelled", "Đã hủy"
+        PENDING     = "pending", "Chờ thanh toán"
+        PROCESSING  = "processing", "Đã thanh toán - Đơn hàng đang được xử lý"
+        SHIPPED     = "shipped", "Đang giao hàng"
+        DELIVERED   = "delivered", "Đã giao hàng"
+        CANCELLED   = "cancelled", "Đã hủy"
+    
+    status              = models.CharField(max_length=20, choices=Status.choices,default=Status.PENDING,verbose_name="Trạng thái")
+
 
     class PaymentMethod(models.TextChoices):
-        COD = "cod", "Thanh toán khi nhận hàng (COD)"
-        PAYOS = "payos", "Thanh toán qua PayOS"
+        COD         = "cod", "Thanh toán khi nhận hàng (COD)"
+        PAYOS       = "payos", "Thanh toán qua PayOS"
 
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,  
-        related_name="orders",
-        verbose_name="Khách hàng"
-    )
+    payment_method      = models.CharField(max_length=10, choices=PaymentMethod.choices,default=PaymentMethod.COD, verbose_name="Phương thức thanh toán")
+
+    user                = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,  related_name="orders",verbose_name="Khách hàng")
 
     # THÔNG TIN SNAPSHOT (Lưu tại thời điểm mua)
-    full_name = models.CharField(max_length=255, blank=True, verbose_name="Họ tên người nhận")
-    phone_number = models.CharField(max_length=20, verbose_name="Số điện thoại")
-    shipping_address = models.TextField(verbose_name="Địa chỉ giao hàng")
-    
-    # Tổng tiền thực tế khách phải trả (đã chốt)
-    total_amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        validators=[MinValueValidator(0)],
-        verbose_name="Tổng tiền đơn hàng"
-    )
+    full_name           = models.CharField(max_length=255, blank=True, verbose_name="Họ tên người nhận")
+    phone_number        = models.CharField(max_length=20, verbose_name="Số điện thoại")
+    shipping_address    = models.TextField(verbose_name="Địa chỉ giao hàng")
+    total_amount        = models.DecimalField(max_digits=12, decimal_places=0, validators=[MinValueValidator(0)], verbose_name="Tổng tiền đơn hàng")
+    order_note          = models.TextField(blank=True, null=True, verbose_name="Ghi chú đơn hàng")
 
-    status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.PENDING,
-        verbose_name="Trạng thái"
-    )
+    created_at          = models.DateTimeField(auto_now_add=True, verbose_name="Ngày đặt hàng")
+    updated_at          = models.DateTimeField(auto_now=True)
 
-    payment_method = models.CharField(
-        max_length=10,
-        choices=PaymentMethod.choices,
-        default=PaymentMethod.COD,
-        verbose_name="Phương thức thanh toán"
+    checkout_url = models.URLField(
+        max_length=500, 
+        null=True, 
+        blank=True, 
+        verbose_name="Link thanh toán"
     )
-    order_note = models.TextField(blank=True, null=True, verbose_name="Ghi chú đơn hàng")
-
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày đặt hàng")
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "orders"
@@ -71,29 +57,17 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(
-        Order,
-        on_delete=models.CASCADE, 
-        related_name="items",
-        verbose_name="Đơn hàng"
-    )
-    product_variant = models.ForeignKey(
-        ProductVariant,
-        on_delete=models.PROTECT,
-        related_name="order_items",
-        verbose_name="Sản phẩm"
-    )
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
+    product_variant = models.ForeignKey(ProductVariant, on_delete=models.PROTECT)
 
-    quantity = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)],
-        verbose_name="Số lượng"
-    )
-    unit_price = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        validators=[MinValueValidator(0)],
-        verbose_name="Giá tại thời điểm mua"
-    )
+    quantity = models.PositiveIntegerField()
+    unit_price = models.DecimalField(max_digits=12, decimal_places=0)
+
+    # SNAPSHOT
+    product_name = models.CharField(max_length=255, default="")
+    variant_version = models.CharField(max_length=255, default="")
+    color = models.CharField(max_length=100, null=True, blank=True)
+    product_main_image = models.URLField(null=True, blank=True)
 
     class Meta:
         db_table = "order_items"
