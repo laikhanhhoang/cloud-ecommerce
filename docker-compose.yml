@@ -40,6 +40,9 @@ services:
     environment:
       SECRET_KEY              : ${DOCKER_BACKEND_SECRET_KEY:-aaabbbcccddd}
       ALLOWED_HOSTS           : ${DOCKER_BACKEND_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      CORS_ALLOWED_ORIGINS    : ${DOCKER_BACKEND_CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+      ORIGIN_HTTPS_ON         : ${DOCKER_BACKEND_ORIGIN_HTTPS_ON:-False}
+      CROSS_DOMAIN_AUTH       : ${DOCKER_BACKEND_CROSS_DOMAIN_AUTH:-False}
       DB_HOST                 : ${DOCKER_BACKEND_DB_HOST:-db}
       DB_PORT                 : ${DOCKER_BACKEND_DB_PORT:-5432}
       DB_USER                 : ${DOCKER_BACKEND_DB_USER:-postgres}
@@ -65,14 +68,50 @@ services:
       - 4510-4559:4510-4559
     environment:
       - DEBUG=1
+      - PERSISTENCE=1
       - DOCKER_HOST=unix:///var/run/docker.sock
     volumes:
       - ./localstack:/var/lib/localstack
       - /var/run/docker.sock:/var/run/docker.sock
       - ./localstack-scripts:/etc/localstack/init/ready.d
 
+  frontend:
+    build: ./frontend
+    container_name: frontend-builder
+
+    depends_on:
+      - localstack
+    
+    ports:
+      - ${DOCKERCOMPOSE_PORT_FRONTEND:-5173}:5173
+
+    volumes:
+      - ${DOCKERCOMPOSE_VOLUME_FRONTEND_CODE:-frontend_code_internal}:/app
+      - ${DOCKERCOMPOSE_VOLUME_FRONTEND_NODE_MODULES:-frontend_node_modules}:/app/node_modules
+      # - ${DOCKERCOMPOSE_VOLUME_FRONTEND_DIST:-frontend_dist_volume}:/app/dist
+
+    environment:
+      VITE_DEBUG: ${DOCKER_FRONTEND_DEBUG:-1}
+      VITE_API_BASE_URL: ${DOCKER_FRONTEND_VITE_API_BASE_URL:-http://localhost:8000}
+      AWS_STORAGE_BUCKET_NAME: ${DOCKER_FRONTEND_AWS_STORAGE_BUCKET_NAME:-}
+      AWS_ACCESS_KEY_ID: ${DOCKER_FRONTEND_AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${DOCKER_FRONTEND_AWS_SECRET_ACCESS_KEY:-}
+      AWS_DEFAULT_REGION: ${DOCKER_FRONTEND_AWS_S3_REGION_NAME:-}
+
+    command: >
+      sh -c "npm run dev"
+
+    # command: >
+    #   sh -c "npm install && 
+    #          npm run build && 
+    #          aws --endpoint-url=http://localstack:4566 s3 sync dist/ s3://$$AWS_STORAGE_BUCKET_NAME --delete &&
+    #          "
+
 volumes:
   ecommerce_db_volume:
   backend_static_volume: 
   backend_media_volume:
   backend_code_internal:
+  frontend_code_internal:
+  frontend_dist_volume:
+  frontend_node_modules:

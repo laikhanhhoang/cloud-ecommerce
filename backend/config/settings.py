@@ -34,6 +34,11 @@ DEBUG = os.getenv('DEBUG') in ['True', 'true', '1']
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
+ORIGIN_HTTPS_ON = os.getenv('ORIGIN_HTTPS_ON', 'False') in ['True', 'true', '1']
+CROSS_DOMAIN_AUTH = os.getenv('CROSS_DOMAIN_AUTH', 'False') in ['True', 'true', '1']
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')  
+CORS_ALLOW_CREDENTIALS = True
+  
 
 # Application definition
 
@@ -49,7 +54,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-
+    'corsheaders',
 
     # Local apps
     'apps.users.apps.UsersConfig',
@@ -60,6 +65,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -258,3 +264,4 @@ SIMPLE_JWT = {
 
     'TOKEN_OBTAIN_PAIR_SERIALIZER': 'apps.users.authenticate.CustomTokenObtainPairSerializer',   # Trỏ đến class custom serializer 
 }
+

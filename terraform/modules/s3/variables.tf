@@ -1,3 +1,8 @@
+variable "public_bucket" {
+  type    = bool
+  default = false
+}
+
 variable "bucket_name" {
   type = string
 }

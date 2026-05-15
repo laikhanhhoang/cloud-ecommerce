@@ -1,7 +1,12 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/useAuthStore';
 
+const DEBUG = import.meta.env.VITE_DEBUG === 'True';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
+if (DEBUG) {
+  console.log("Check API URL:", import.meta.env.VITE_API_BASE_URL);
+}
 
 export const httpClient = axios.create({
   baseURL: API_BASE_URL,

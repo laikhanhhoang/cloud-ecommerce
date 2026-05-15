@@ -20,10 +20,15 @@ def set_auth_cookies(response, access_token, refresh_token=None):
     access_max_age = int(access_lifetime.total_seconds())
     refresh_max_age = int(refresh_lifetime.total_seconds())
 
+    samesite_val = 'Lax'
+    secure_val = getattr(settings, 'ORIGIN_HTTPS_ON', False)
+    if secure_val and getattr(settings, 'CROSS_DOMAIN_AUTH', False): samesite_val = 'None'
+
     common_settings = {
         'httponly': True,
-        'secure': not settings.DEBUG,
-        'samesite': 'Lax',
+        'secure': secure_val,
+        'samesite': samesite_val,
+        'path': '/',
     }
 
     # 1. Gán Access Token
@@ -40,7 +45,6 @@ def set_auth_cookies(response, access_token, refresh_token=None):
             key='refresh_token',
             value=refresh_token,
             max_age=refresh_max_age, # Lấy tự động: 604800 giây (7 ngày)
-            path='/api/auth/',
             **common_settings
         )
     
@@ -49,5 +53,5 @@ def set_auth_cookies(response, access_token, refresh_token=None):
 
 def remove_auth_cookies(response):
     response.delete_cookie('access_token')
-    response.delete_cookie('refresh_token', path='/api/auth/')
+    response.delete_cookie('refresh_token')
     return response

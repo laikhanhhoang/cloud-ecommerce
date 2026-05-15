@@ -1,5 +1,11 @@
-backend_s3_access_key = "LKIAQAAAAAAAOK7MBBQF"
+backend_s3_access_key = "LKIAQAAAAAAAFMGX7CAY"
 backend_s3_bucket_name = "dev-backend-s3"
 backend_s3_endpoint_url = "http://localhost:4566"
 backend_s3_secret_key = <sensitive>
 backend_s3_url = "http://localhost:4566/dev-backend-s3"
+frontend_s3_access_key = "LKIAQAAAAAAALBIWNJVA"
+frontend_s3_bucket_name = "dev-frontend-s3"
+frontend_s3_regional_domain_name = "dev-frontend-s3.s3.ap-southeast-2.amazonaws.com"
+frontend_s3_secret_key = <sensitive>
+frontend_s3_url = "http://localhost:4566/dev-frontend-s3"
+frontend_s3_website_url = "http://dev-frontend-s3.s3-website.localhost.localstack.cloud:4566"
