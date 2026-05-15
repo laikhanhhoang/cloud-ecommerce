@@ -49,12 +49,6 @@ class Order(models.Model):
         default=PaymentMethod.COD,
         verbose_name="Phương thức thanh toán"
     )
-    payment_link = models.URLField(
-        max_length=500, 
-        blank=True, 
-        null=True, 
-        verbose_name="Link thanh toán PayOS"
-    )
     order_note = models.TextField(blank=True, null=True, verbose_name="Ghi chú đơn hàng")
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày đặt hàng")

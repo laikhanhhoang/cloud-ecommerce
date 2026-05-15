@@ -20,10 +20,9 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'full_name', 'phone_number', 'shipping_address', 
             'total_amount', 'status', 'status_display', 
-            'payment_method', 'payment_method_display', 
-            'payment_link', 'order_note', 'created_at', 'items'
+            'payment_method', 'payment_method_display',  'order_note', 'created_at', 'items'
         ]
-        read_only_fields = ['total_amount', 'status', 'payment_link']
+        read_only_fields = ['total_amount', 'status'
 
 # apps/orders/serializers.py
 
